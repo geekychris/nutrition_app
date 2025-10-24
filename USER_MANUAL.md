@@ -22,7 +22,10 @@ The app has two main tabs:
 
 1. **Meals Tab** (fork.knife icon): View and manage your recorded meals
 2. **Summary Tab** (chart.bar icon): View daily and weekly nutrition summaries
-
+![img_2.png](doc_images/img_2.png)
+![img_1.png](doc_images/img_1.png)
+![img.png](doc_images/img.png)
+![img_3.png](doc_images/img_3.png)
 ## Using the App
 
 ### Recording a Meal
