@@ -1,0 +1,192 @@
+import SwiftUI
+import Charts
+
+struct SummaryView: View {
+    @EnvironmentObject var dataManager: DataManager
+    @State private var selectedTimeframe: Timeframe = .daily
+    
+    enum Timeframe: String, CaseIterable {
+        case daily = "Daily"
+        case weekly = "Weekly"
+    }
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    Picker("Timeframe", selection: $selectedTimeframe) {
+                        ForEach(Timeframe.allCases, id: \.self) { timeframe in
+                            Text(timeframe.rawValue).tag(timeframe)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .padding()
+                    
+                    if selectedTimeframe == .daily {
+                        dailyView
+                    } else {
+                        weeklyView
+                    }
+                }
+            }
+            .navigationTitle("Summary")
+        }
+    }
+    
+    private var dailyView: some View {
+        VStack(spacing: 16) {
+            let summaries = dataManager.getDailySummaries()
+            
+            if summaries.isEmpty {
+                Text("No meals recorded yet")
+                    .foregroundColor(.secondary)
+                    .padding()
+            } else {
+                // Chart for last 7 days
+                if summaries.count > 1 {
+                    VStack(alignment: .leading) {
+                        Text("Last 7 Days")
+                            .font(.headline)
+                            .padding(.horizontal)
+                        
+                        Chart {
+                            ForEach(Array(summaries.prefix(7))) { summary in
+                                BarMark(
+                                    x: .value("Date", summary.date, unit: .day),
+                                    y: .value("Calories", summary.totalNutrition.calories)
+                                )
+                                .foregroundStyle(.blue)
+                            }
+                        }
+                        .frame(height: 200)
+                        .padding()
+                    }
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                }
+                
+                // Daily breakdown
+                ForEach(summaries) { summary in
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(summary.dateString)
+                            .font(.headline)
+                        
+                        HStack(spacing: 30) {
+                            VStack(alignment: .leading) {
+                                Text("Carbs")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(summary.totalNutrition.carbohydrates, specifier: "%.1f")g")
+                                    .font(.title3)
+                                    .bold()
+                            }
+                            
+                            VStack(alignment: .leading) {
+                                Text("Protein")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(summary.totalNutrition.protein, specifier: "%.1f")g")
+                                    .font(.title3)
+                                    .bold()
+                            }
+                            
+                            VStack(alignment: .leading) {
+                                Text("Calories")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(summary.totalNutrition.calories, specifier: "%.0f")")
+                                    .font(.title3)
+                                    .bold()
+                            }
+                        }
+                        
+                        Text("\(summary.meals.count) meal\(summary.meals.count == 1 ? "" : "s")")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                }
+            }
+        }
+    }
+    
+    private var weeklyView: some View {
+        VStack(spacing: 16) {
+            let weeklySummaries = dataManager.getWeeklySummaries()
+            
+            if weeklySummaries.isEmpty {
+                Text("No meals recorded yet")
+                    .foregroundColor(.secondary)
+                    .padding()
+            } else {
+                // Chart
+                VStack(alignment: .leading) {
+                    Text("Weekly Trends")
+                        .font(.headline)
+                        .padding(.horizontal)
+                    
+                    Chart {
+                        ForEach(weeklySummaries, id: \.weekStart) { summary in
+                            LineMark(
+                                x: .value("Week", summary.weekStart, unit: .weekOfYear),
+                                y: .value("Calories", summary.nutrition.calories)
+                            )
+                            .foregroundStyle(.blue)
+                            .symbol(Circle())
+                        }
+                    }
+                    .frame(height: 200)
+                    .padding()
+                }
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(10)
+                .padding(.horizontal)
+                
+                // Weekly breakdown
+                ForEach(weeklySummaries, id: \.weekStart) { summary in
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Week of \(summary.weekStart, style: .date)")
+                            .font(.headline)
+                        
+                        HStack(spacing: 30) {
+                            VStack(alignment: .leading) {
+                                Text("Carbs")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(summary.nutrition.carbohydrates, specifier: "%.1f")g")
+                                    .font(.title3)
+                                    .bold()
+                            }
+                            
+                            VStack(alignment: .leading) {
+                                Text("Protein")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(summary.nutrition.protein, specifier: "%.1f")g")
+                                    .font(.title3)
+                                    .bold()
+                            }
+                            
+                            VStack(alignment: .leading) {
+                                Text("Calories")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(summary.nutrition.calories, specifier: "%.0f")")
+                                    .font(.title3)
+                                    .bold()
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+                }
+            }
+        }
+    }
+}
