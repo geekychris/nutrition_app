@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		83A2D29A2EAC4AAE00E7B748 /* NutritionAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A2D2982EAC4AAE00E7B748 /* NutritionAPIService.swift */; };
+		83A2D29B2EAC4AAE00E7B748 /* OnlineFoodSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A2D2992EAC4AAE00E7B748 /* OnlineFoodSearchView.swift */; };
+		83A2D29E2EAC4D6600E7B748 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A2D29C2EAC4D6600E7B748 /* SettingsManager.swift */; };
+		83A2D29F2EAC4D6600E7B748 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A2D29D2EAC4D6600E7B748 /* SettingsView.swift */; };
+		83A2D2A12EAC517900E7B748 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A2D2A02EAC517900E7B748 /* ImagePicker.swift */; };
 		AA0000010000000000000001 /* NutritionTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000010000000000000001 /* NutritionTrackerApp.swift */; };
 		AA0000010000000000000002 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000010000000000000002 /* Models.swift */; };
 		AA0000010000000000000003 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000010000000000000003 /* DataManager.swift */; };
@@ -16,12 +21,17 @@
 		AA0000010000000000000007 /* AddFoodView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000010000000000000007 /* AddFoodView.swift */; };
 		AA0000010000000000000008 /* AddDrinkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000010000000000000008 /* AddDrinkView.swift */; };
 		AA0000010000000000000009 /* SummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000010000000000000009 /* SummaryView.swift */; };
-		AA000001000000000000000B /* NutritionDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000001000000000000000B /* NutritionDatabase.swift */; };
 		AA000001000000000000000A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB000001000000000000000A /* Assets.xcassets */; };
+		AA000001000000000000000B /* NutritionDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000001000000000000000B /* NutritionDatabase.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		CC0000010000000000000001 /* NutritionTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NutritionTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		83A2D2982EAC4AAE00E7B748 /* NutritionAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionAPIService.swift; sourceTree = "<group>"; };
+		83A2D2992EAC4AAE00E7B748 /* OnlineFoodSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineFoodSearchView.swift; sourceTree = "<group>"; };
+		83A2D29C2EAC4D6600E7B748 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
+		83A2D29D2EAC4D6600E7B748 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		83A2D2A02EAC517900E7B748 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+		83A2D2A22EAC545900E7B748 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		BB0000010000000000000001 /* NutritionTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionTrackerApp.swift; sourceTree = "<group>"; };
 		BB0000010000000000000002 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		BB0000010000000000000003 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
@@ -31,8 +41,9 @@
 		BB0000010000000000000007 /* AddFoodView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFoodView.swift; sourceTree = "<group>"; };
 		BB0000010000000000000008 /* AddDrinkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddDrinkView.swift; sourceTree = "<group>"; };
 		BB0000010000000000000009 /* SummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryView.swift; sourceTree = "<group>"; };
-		BB000001000000000000000B /* NutritionDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionDatabase.swift; sourceTree = "<group>"; };
 		BB000001000000000000000A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BB000001000000000000000B /* NutritionDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionDatabase.swift; sourceTree = "<group>"; };
+		CC0000010000000000000001 /* NutritionTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NutritionTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +68,12 @@
 		FF0000010000000000000001 /* NutritionTracker */ = {
 			isa = PBXGroup;
 			children = (
+				83A2D2A22EAC545900E7B748 /* Info.plist */,
+				83A2D2A02EAC517900E7B748 /* ImagePicker.swift */,
+				83A2D29C2EAC4D6600E7B748 /* SettingsManager.swift */,
+				83A2D29D2EAC4D6600E7B748 /* SettingsView.swift */,
+				83A2D2982EAC4AAE00E7B748 /* NutritionAPIService.swift */,
+				83A2D2992EAC4AAE00E7B748 /* OnlineFoodSearchView.swift */,
 				BB0000010000000000000001 /* NutritionTrackerApp.swift */,
 				BB0000010000000000000002 /* Models.swift */,
 				BB0000010000000000000003 /* DataManager.swift */,
@@ -158,6 +175,11 @@
 				AA0000010000000000000007 /* AddFoodView.swift in Sources */,
 				AA0000010000000000000008 /* AddDrinkView.swift in Sources */,
 				AA0000010000000000000009 /* SummaryView.swift in Sources */,
+				83A2D29A2EAC4AAE00E7B748 /* NutritionAPIService.swift in Sources */,
+				83A2D29B2EAC4AAE00E7B748 /* OnlineFoodSearchView.swift in Sources */,
+				83A2D29E2EAC4D6600E7B748 /* SettingsManager.swift in Sources */,
+				83A2D2A12EAC517900E7B748 /* ImagePicker.swift in Sources */,
+				83A2D29F2EAC4D6600E7B748 /* SettingsView.swift in Sources */,
 				AA000001000000000000000B /* NutritionDatabase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -292,8 +314,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = T2M6R36LYY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NutritionTracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access to photograph meals";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -321,8 +348,13 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = T2M6R36LYY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NutritionTracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access to photograph meals";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

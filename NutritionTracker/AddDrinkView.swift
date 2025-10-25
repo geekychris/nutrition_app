@@ -3,6 +3,7 @@ import SwiftUI
 struct AddDrinkView: View {
     @Binding var drinks: [Drink]
     @Environment(\.dismiss) var dismiss
+    @ObservedObject var settings = SettingsManager.shared
     
     @State private var name = ""
     @State private var volume = ""
@@ -51,13 +52,29 @@ struct AddDrinkView: View {
                         }
                     }
                     
-                    TextField("Volume (ml)", text: $volume)
-                        .keyboardType(.decimalPad)
-                        .onChange(of: volume) { oldValue, newValue in
-                            if !carbs.isEmpty || !protein.isEmpty || !calories.isEmpty {
-                                recalculateNutrition()
+                    HStack {
+                        TextField(settings.measurementUnit.volumeUnit, text: Binding(
+                            get: { displayVolume },
+                            set: { newValue in
+                                // Convert displayed value to ml for storage
+                                if let displayValue = Double(newValue) {
+                                    let ml = settings.measurementUnit == .imperial
+                                        ? settings.fluidOuncesToMl(displayValue)
+                                        : displayValue
+                                    volume = String(format: "%.0f", ml)
+                                    if !carbs.isEmpty || !protein.isEmpty || !calories.isEmpty {
+                                        recalculateNutrition()
+                                    }
+                                } else {
+                                    volume = newValue
+                                }
                             }
-                        }
+                        ))
+                        .keyboardType(.decimalPad)
+                        
+                        Text(settings.measurementUnit.volumeUnit)
+                            .foregroundColor(.secondary)
+                    }
                     Toggle("Alcoholic", isOn: $isAlcoholic)
                 }
                 
@@ -82,6 +99,17 @@ struct AddDrinkView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+        }
+    }
+    
+    private var displayVolume: String {
+        guard let volumeMl = Double(volume) else { return volume }
+        
+        switch settings.measurementUnit {
+        case .metric:
+            return String(format: "%.0f", volumeMl)
+        case .imperial:
+            return String(format: "%.1f", settings.mlToFluidOunces(volumeMl))
         }
     }
     

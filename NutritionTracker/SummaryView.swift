@@ -3,6 +3,7 @@ import Charts
 
 struct SummaryView: View {
     @EnvironmentObject var dataManager: DataManager
+    @ObservedObject var settings = SettingsManager.shared
     @State private var selectedTimeframe: Timeframe = .daily
     
     enum Timeframe: String, CaseIterable {
@@ -77,7 +78,7 @@ struct SummaryView: View {
                                 Text("Carbs")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                Text("\(summary.totalNutrition.carbohydrates, specifier: "%.1f")g")
+                                Text("\(settings.formatNutritionalWeight(summary.totalNutrition.carbohydrates)) \(settings.nutritionalWeightUnit)")
                                     .font(.title3)
                                     .bold()
                             }
@@ -86,7 +87,7 @@ struct SummaryView: View {
                                 Text("Protein")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                Text("\(summary.totalNutrition.protein, specifier: "%.1f")g")
+                                Text("\(settings.formatNutritionalWeight(summary.totalNutrition.protein)) \(settings.nutritionalWeightUnit)")
                                     .font(.title3)
                                     .bold()
                             }
@@ -157,7 +158,7 @@ struct SummaryView: View {
                                 Text("Carbs")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                Text("\(summary.nutrition.carbohydrates, specifier: "%.1f")g")
+                                Text("\(settings.formatNutritionalWeight(summary.nutrition.carbohydrates)) \(settings.nutritionalWeightUnit)")
                                     .font(.title3)
                                     .bold()
                             }
@@ -166,7 +167,7 @@ struct SummaryView: View {
                                 Text("Protein")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                Text("\(summary.nutrition.protein, specifier: "%.1f")g")
+                                Text("\(settings.formatNutritionalWeight(summary.nutrition.protein)) \(settings.nutritionalWeightUnit)")
                                     .font(.title3)
                                     .bold()
                             }

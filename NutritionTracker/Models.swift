@@ -41,11 +41,17 @@ struct Meal: Identifiable, Codable, Hashable {
     var foods: [FoodItem]
     var drinks: [Drink]
     var timestamp: Date = Date()
+    var photoData: Data?  // Store image as Data for persistence
     
     var totalNutrition: NutritionInfo {
         let foodNutrition = foods.reduce(NutritionInfo.zero) { $0 + $1.nutrition }
         let drinkNutrition = drinks.reduce(NutritionInfo.zero) { $0 + $1.nutrition }
         return foodNutrition + drinkNutrition
+    }
+    
+    var isIncomplete: Bool {
+        // Meal is incomplete if it has a photo but no foods or drinks
+        return photoData != nil && foods.isEmpty && drinks.isEmpty
     }
 }
 
