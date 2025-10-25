@@ -4,13 +4,17 @@ import SwiftData
 struct MealsListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Meal.timestamp, order: .reverse) private var meals: [Meal]
+    @EnvironmentObject var syncMonitor: SyncMonitor
     @ObservedObject var settings = SettingsManager.shared
     @State private var showingAddMeal = false
     @State private var editingMeal: Meal?
+    @State private var isRefreshing = false
     
     var body: some View {
         NavigationView {
             List {
+                // Hidden view that triggers refresh when sync occurs
+                EmptyView().id(syncMonitor.refreshTrigger)
                 ForEach(meals) { meal in
                     Button(action: {
                         editingMeal = meal
@@ -90,12 +94,16 @@ struct MealsListView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingAddMeal) {
-                MealEditorView()
+            .refreshable {
+                await refreshData()
             }
-            .sheet(item: $editingMeal) { meal in
-                MealEditorView(meal: meal)
-            }
+        }
+        .navigationViewStyle(.stack)
+        .sheet(isPresented: $showingAddMeal) {
+            MealEditorView()
+        }
+        .sheet(item: $editingMeal) { meal in
+            MealEditorView(meal: meal)
         }
     }
     
@@ -104,5 +112,30 @@ struct MealsListView: View {
             modelContext.delete(meals[index])
         }
         try? modelContext.save()
+    }
+    
+    private func refreshData() async {
+        isRefreshing = true
+        
+        // Force a fetch from the persistent store
+        do {
+            let descriptor = FetchDescriptor<Meal>(sortBy: [SortDescriptor(\.timestamp, order: .reverse)])
+            _ = try modelContext.fetch(descriptor)
+            
+            // Also fetch related objects
+            let foodDescriptor = FetchDescriptor<FoodItem>()
+            _ = try modelContext.fetch(foodDescriptor)
+            
+            let drinkDescriptor = FetchDescriptor<Drink>()
+            _ = try modelContext.fetch(drinkDescriptor)
+            
+            print("🔄 Manual refresh completed - Found \(meals.count) meals")
+        } catch {
+            print("⚠️ Refresh error: \(error)")
+        }
+        
+        // Small delay to show the refresh indicator
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        isRefreshing = false
     }
 }

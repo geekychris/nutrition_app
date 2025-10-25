@@ -16,6 +16,7 @@ struct MealEditorView: View {
     @State private var showingImagePicker = false
     @State private var showingPhotoOptions = false
     @State private var imageSourceType: UIImagePickerController.SourceType = .photoLibrary
+    @State private var saveError: String?
     
     var meal: Meal?
     
@@ -132,9 +133,13 @@ struct MealEditorView: View {
                 }
                 
                 Button(meal == nil ? "Save Meal" : "Update Meal") {
+                    print("🔘 Save button tapped!")
                     saveMeal()
                 }
                 .disabled(mealName.isEmpty || (foods.isEmpty && drinks.isEmpty && mealPhoto == nil))
+                .onAppear {
+                    print("📋 MealEditorView appeared - Editing: \(meal != nil)")
+                }
             }
             .navigationTitle(meal == nil ? "New Meal" : "Edit Meal")
             .navigationBarTitleDisplayMode(.inline)
@@ -166,6 +171,13 @@ struct MealEditorView: View {
                 Button("Cancel", role: .cancel) {}
             }
         }
+        .alert("Save Error", isPresented: .constant(saveError != nil)) {
+            Button("OK") { saveError = nil }
+        } message: {
+            if let error = saveError {
+                Text(error)
+            }
+        }
     }
     
     private func calculateTotal() -> NutritionInfo {
@@ -175,26 +187,79 @@ struct MealEditorView: View {
     }
     
     private func saveMeal() {
+        print("🚀 saveMeal() called")
+        print("📝 Meal name: \(mealName)")
+        print("🍽️ Foods: \(foods.count), Drinks: \(drinks.count)")
+        
         // Convert photo to Data
         let photoData = mealPhoto?.jpegData(compressionQuality: 0.7)
         
         if let existingMeal = meal {
+            // Update existing meal
             existingMeal.name = mealName
-            existingMeal.foods = foods
-            existingMeal.drinks = drinks
             existingMeal.timestamp = mealDate
             existingMeal.photoData = photoData
+            
+            // Remove old foods and drinks
+            if let oldFoods = existingMeal.foods {
+                for food in oldFoods {
+                    modelContext.delete(food)
+                }
+            }
+            if let oldDrinks = existingMeal.drinks {
+                for drink in oldDrinks {
+                    modelContext.delete(drink)
+                }
+            }
+            
+            // Insert new foods and drinks
+            for food in foods {
+                modelContext.insert(food)
+                food.meal = existingMeal
+            }
+            for drink in drinks {
+                modelContext.insert(drink)
+                drink.meal = existingMeal
+            }
+            
+            existingMeal.foods = foods
+            existingMeal.drinks = drinks
         } else {
+            // Create new meal
             let newMeal = Meal(
                 name: mealName,
-                foods: foods,
-                drinks: drinks,
+                foods: [],
+                drinks: [],
                 timestamp: mealDate,
                 photoData: photoData
             )
+            
+            // Insert meal first
             modelContext.insert(newMeal)
+            
+            // Then insert and link foods and drinks
+            for food in foods {
+                modelContext.insert(food)
+                food.meal = newMeal
+            }
+            for drink in drinks {
+                modelContext.insert(drink)
+                drink.meal = newMeal
+            }
+            
+            newMeal.foods = foods
+            newMeal.drinks = drinks
         }
-        try? modelContext.save()
-        dismiss()
+        
+        do {
+            try modelContext.save()
+            print("💾 Meal saved successfully: \"\(mealName)\" with \(foods.count) foods and \(drinks.count) drinks")
+            print("✅ ModelContext has changes: \(modelContext.hasChanges)")
+            dismiss()
+        } catch {
+            let errorMessage = "Failed to save: \(error.localizedDescription)"
+            print("❌ Error saving meal: \(error)")
+            saveError = errorMessage
+        }
     }
 }

@@ -4,6 +4,7 @@ import SwiftData
 @main
 struct NutritionTrackerApp: App {
     let modelContainer: ModelContainer
+    @StateObject private var syncMonitor = SyncMonitor()
     
     init() {
         do {
@@ -32,6 +33,13 @@ struct NutritionTrackerApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(syncMonitor)
+                .onAppear {
+                    syncMonitor.startMonitoring(modelContainer: modelContainer)
+                }
+                .onDisappear {
+                    syncMonitor.stopMonitoring()
+                }
         }
         .modelContainer(modelContainer)
     }

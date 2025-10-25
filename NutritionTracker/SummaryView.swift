@@ -5,6 +5,7 @@ import SwiftData
 struct SummaryView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var meals: [Meal]
+    @EnvironmentObject var syncMonitor: SyncMonitor
     @ObservedObject var settings = SettingsManager.shared
     
     private var dataManager: DataManager {
@@ -19,7 +20,10 @@ struct SummaryView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
+            ZStack {
+                // Hidden view that triggers refresh when sync occurs
+                EmptyView().id(syncMonitor.refreshTrigger)
+                
                 VStack(spacing: 20) {
                     Picker("Timeframe", selection: $selectedTimeframe) {
                         ForEach(Timeframe.allCases, id: \.self) { timeframe in
@@ -38,6 +42,7 @@ struct SummaryView: View {
             }
             .navigationTitle("Summary")
         }
+        .navigationViewStyle(.stack)
     }
     
     private var dailyView: some View {

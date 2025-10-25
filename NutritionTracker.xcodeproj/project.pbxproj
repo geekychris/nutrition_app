@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		835882E72EAC9B4C000FE45E /* SyncMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835882E62EAC9B4C000FE45E /* SyncMonitor.swift */; };
 		83A2D29A2EAC4AAE00E7B748 /* NutritionAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A2D2982EAC4AAE00E7B748 /* NutritionAPIService.swift */; };
 		83A2D29B2EAC4AAE00E7B748 /* OnlineFoodSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A2D2992EAC4AAE00E7B748 /* OnlineFoodSearchView.swift */; };
 		83A2D29E2EAC4D6600E7B748 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A2D29C2EAC4D6600E7B748 /* SettingsManager.swift */; };
@@ -26,6 +27,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		835882E62EAC9B4C000FE45E /* SyncMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncMonitor.swift; sourceTree = "<group>"; };
 		83A2D2982EAC4AAE00E7B748 /* NutritionAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionAPIService.swift; sourceTree = "<group>"; };
 		83A2D2992EAC4AAE00E7B748 /* OnlineFoodSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineFoodSearchView.swift; sourceTree = "<group>"; };
 		83A2D29C2EAC4D6600E7B748 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
@@ -69,6 +71,7 @@
 		FF0000010000000000000001 /* NutritionTracker */ = {
 			isa = PBXGroup;
 			children = (
+				835882E62EAC9B4C000FE45E /* SyncMonitor.swift */,
 				83A2D2A32EAC888B00E7B748 /* NutritionTracker.entitlements */,
 				83A2D2A22EAC545900E7B748 /* Info.plist */,
 				83A2D2A02EAC517900E7B748 /* ImagePicker.swift */,
@@ -169,6 +172,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA0000010000000000000001 /* NutritionTrackerApp.swift in Sources */,
+				835882E72EAC9B4C000FE45E /* SyncMonitor.swift in Sources */,
 				AA0000010000000000000002 /* Models.swift in Sources */,
 				AA0000010000000000000003 /* DataManager.swift in Sources */,
 				AA0000010000000000000004 /* ContentView.swift in Sources */,

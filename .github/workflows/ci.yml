@@ -23,6 +23,12 @@ jobs:
             os: 26.0.1
           - name: iPhone 18
             os: 26.0.1
+          - name: iPad Pro 13-inch (M4)
+            os: 26.0.1
+          - name: iPad Pro 11-inch (M4)
+            os: 26.0.1
+          - name: iPad Air 11-inch (M3)
+            os: 26.0.1
     
     steps:
     - name: Checkout code
