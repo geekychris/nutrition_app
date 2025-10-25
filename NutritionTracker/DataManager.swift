@@ -1,33 +1,30 @@
 import Foundation
 import SwiftUI
+import SwiftData
 
 class DataManager: ObservableObject {
-    @Published var meals: [Meal] = []
+    var modelContext: ModelContext
     
-    private let mealsKey = "saved_meals"
-    
-    init() {
-        loadMeals()
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
     }
     
     func addMeal(_ meal: Meal) {
-        meals.append(meal)
-        saveMeals()
+        modelContext.insert(meal)
+        try? modelContext.save()
     }
     
     func deleteMeal(_ meal: Meal) {
-        meals.removeAll { $0.id == meal.id }
-        saveMeals()
+        modelContext.delete(meal)
+        try? modelContext.save()
     }
     
     func updateMeal(_ meal: Meal) {
-        if let index = meals.firstIndex(where: { $0.id == meal.id }) {
-            meals[index] = meal
-            saveMeals()
-        }
+        // SwiftData automatically tracks changes
+        try? modelContext.save()
     }
     
-    func getDailySummaries() -> [DailySummary] {
+    func getDailySummaries(meals: [Meal]) -> [DailySummary] {
         let calendar = Calendar.current
         let grouped = Dictionary(grouping: meals) { meal in
             calendar.startOfDay(for: meal.timestamp)
@@ -44,7 +41,7 @@ class DataManager: ObservableObject {
         }.sorted { $0.date > $1.date }
     }
     
-    func getWeeklySummaries(weeks: Int = 4) -> [(weekStart: Date, nutrition: NutritionInfo)] {
+    func getWeeklySummaries(meals: [Meal], weeks: Int = 4) -> [(weekStart: Date, nutrition: NutritionInfo)] {
         let calendar = Calendar.current
         let now = Date()
         
@@ -66,18 +63,5 @@ class DataManager: ObservableObject {
         }
         
         return summaries.sorted { $0.0 < $1.0 }
-    }
-    
-    private func saveMeals() {
-        if let encoded = try? JSONEncoder().encode(meals) {
-            UserDefaults.standard.set(encoded, forKey: mealsKey)
-        }
-    }
-    
-    private func loadMeals() {
-        if let data = UserDefaults.standard.data(forKey: mealsKey),
-           let decoded = try? JSONDecoder().decode([Meal].self, from: data) {
-            meals = decoded
-        }
     }
 }

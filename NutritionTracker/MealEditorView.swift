@@ -1,7 +1,8 @@
 import SwiftUI
+import SwiftData
 
 struct MealEditorView: View {
-    @EnvironmentObject var dataManager: DataManager
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) var dismiss
     @ObservedObject var settings = SettingsManager.shared
     
@@ -23,8 +24,8 @@ struct MealEditorView: View {
         if let meal = meal {
             _mealName = State(initialValue: meal.name)
             _mealDate = State(initialValue: meal.timestamp)
-            _foods = State(initialValue: meal.foods)
-            _drinks = State(initialValue: meal.drinks)
+            _foods = State(initialValue: meal.foods ?? [])
+            _drinks = State(initialValue: meal.drinks ?? [])
             if let photoData = meal.photoData, let image = UIImage(data: photoData) {
                 _mealPhoto = State(initialValue: image)
             }
@@ -178,13 +179,11 @@ struct MealEditorView: View {
         let photoData = mealPhoto?.jpegData(compressionQuality: 0.7)
         
         if let existingMeal = meal {
-            var updated = existingMeal
-            updated.name = mealName
-            updated.foods = foods
-            updated.drinks = drinks
-            updated.timestamp = mealDate
-            updated.photoData = photoData
-            dataManager.updateMeal(updated)
+            existingMeal.name = mealName
+            existingMeal.foods = foods
+            existingMeal.drinks = drinks
+            existingMeal.timestamp = mealDate
+            existingMeal.photoData = photoData
         } else {
             let newMeal = Meal(
                 name: mealName,
@@ -193,8 +192,9 @@ struct MealEditorView: View {
                 timestamp: mealDate,
                 photoData: photoData
             )
-            dataManager.addMeal(newMeal)
+            modelContext.insert(newMeal)
         }
+        try? modelContext.save()
         dismiss()
     }
 }

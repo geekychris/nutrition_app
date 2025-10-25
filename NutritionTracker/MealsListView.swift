@@ -1,7 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct MealsListView: View {
-    @EnvironmentObject var dataManager: DataManager
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Meal.timestamp, order: .reverse) private var meals: [Meal]
     @ObservedObject var settings = SettingsManager.shared
     @State private var showingAddMeal = false
     @State private var editingMeal: Meal?
@@ -9,7 +11,7 @@ struct MealsListView: View {
     var body: some View {
         NavigationView {
             List {
-                ForEach(dataManager.meals.sorted(by: { $0.timestamp > $1.timestamp })) { meal in
+                ForEach(meals) { meal in
                     Button(action: {
                         editingMeal = meal
                     }) {
@@ -43,14 +45,14 @@ struct MealsListView: View {
                                         .foregroundColor(.secondary)
                                 }
                             
-                                if !meal.foods.isEmpty {
-                                    Text("Foods: \(meal.foods.map { $0.name }.joined(separator: ", "))")
+                                if !(meal.foods?.isEmpty ?? true) {
+                                    Text("Foods: \((meal.foods ?? []).map { $0.name }.joined(separator: ", "))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
                                 
-                                if !meal.drinks.isEmpty {
-                                    Text("Drinks: \(meal.drinks.map { $0.name }.joined(separator: ", "))")
+                                if !(meal.drinks?.isEmpty ?? true) {
+                                    Text("Drinks: \((meal.drinks ?? []).map { $0.name }.joined(separator: ", "))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -98,9 +100,9 @@ struct MealsListView: View {
     }
     
     private func deleteMeal(at offsets: IndexSet) {
-        let sortedMeals = dataManager.meals.sorted(by: { $0.timestamp > $1.timestamp })
         for index in offsets {
-            dataManager.deleteMeal(sortedMeals[index])
+            modelContext.delete(meals[index])
         }
+        try? modelContext.save()
     }
 }

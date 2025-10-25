@@ -1,9 +1,15 @@
 import SwiftUI
 import Charts
+import SwiftData
 
 struct SummaryView: View {
-    @EnvironmentObject var dataManager: DataManager
+    @Environment(\.modelContext) private var modelContext
+    @Query private var meals: [Meal]
     @ObservedObject var settings = SettingsManager.shared
+    
+    private var dataManager: DataManager {
+        DataManager(modelContext: modelContext)
+    }
     @State private var selectedTimeframe: Timeframe = .daily
     
     enum Timeframe: String, CaseIterable {
@@ -36,7 +42,7 @@ struct SummaryView: View {
     
     private var dailyView: some View {
         VStack(spacing: 16) {
-            let summaries = dataManager.getDailySummaries()
+            let summaries = dataManager.getDailySummaries(meals: meals)
             
             if summaries.isEmpty {
                 Text("No meals recorded yet")
@@ -117,7 +123,7 @@ struct SummaryView: View {
     
     private var weeklyView: some View {
         VStack(spacing: 16) {
-            let weeklySummaries = dataManager.getWeeklySummaries()
+            let weeklySummaries = dataManager.getWeeklySummaries(meals: meals)
             
             if weeklySummaries.isEmpty {
                 Text("No meals recorded yet")
