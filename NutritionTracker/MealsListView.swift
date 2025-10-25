@@ -81,6 +81,14 @@ struct MealsListView: View {
                         .padding(.vertical, 4)
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .swipeActions(edge: .leading) {
+                        Button {
+                            cloneMeal(meal)
+                        } label: {
+                            Label("Clone", systemImage: "doc.on.doc")
+                        }
+                        .tint(.green)
+                    }
                 }
                 .onDelete(perform: deleteMeal)
             }
@@ -105,6 +113,56 @@ struct MealsListView: View {
         .sheet(item: $editingMeal) { meal in
             MealEditorView(meal: meal)
         }
+    }
+    
+    private func cloneMeal(_ meal: Meal) {
+        // Create copies of all foods
+        let clonedFoods = (meal.foods ?? []).map { originalFood in
+            FoodItem(
+                name: originalFood.name,
+                weight: originalFood.weight,
+                nutrition: originalFood.nutrition,
+                timestamp: Date()
+            )
+        }
+        
+        // Create copies of all drinks
+        let clonedDrinks = (meal.drinks ?? []).map { originalDrink in
+            Drink(
+                name: originalDrink.name,
+                volume: originalDrink.volume,
+                nutrition: originalDrink.nutrition,
+                isAlcoholic: originalDrink.isAlcoholic,
+                timestamp: Date()
+            )
+        }
+        
+        // Create new meal with current timestamp
+        let clonedMeal = Meal(
+            name: meal.name,
+            foods: [],
+            drinks: [],
+            timestamp: Date(),
+            photoData: meal.photoData
+        )
+        
+        // Insert meal first
+        modelContext.insert(clonedMeal)
+        
+        // Then insert and link foods and drinks
+        for food in clonedFoods {
+            modelContext.insert(food)
+            food.meal = clonedMeal
+        }
+        for drink in clonedDrinks {
+            modelContext.insert(drink)
+            drink.meal = clonedMeal
+        }
+        
+        clonedMeal.foods = clonedFoods
+        clonedMeal.drinks = clonedDrinks
+        
+        try? modelContext.save()
     }
     
     private func deleteMeal(at offsets: IndexSet) {
