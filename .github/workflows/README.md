@@ -12,7 +12,7 @@ This directory contains GitHub Actions workflows for automated building and test
 
 **What it does**:
 - Checks out the code
-- Builds the app for iOS Simulator (iPhone 14, 15, 16, and 18)
+- Builds the app for iOS Simulator (iPhone 14, 15, 16, 17, and 18)
 - Runs unit tests on all devices (if available)
 - Runs SwiftLint (if configured)
 
