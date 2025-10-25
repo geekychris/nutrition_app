@@ -19,6 +19,8 @@ jobs:
             os: 26.0.1
           - name: iPhone 16
             os: 26.0.1
+          - name: iPhone 18
+            os: 26.0.1
     
     steps:
     - name: Checkout code
