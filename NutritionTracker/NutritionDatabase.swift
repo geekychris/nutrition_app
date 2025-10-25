@@ -18,7 +18,171 @@ struct DrinkTemplate: Identifiable, Hashable {
 class NutritionDatabase {
     static let shared = NutritionDatabase()
     
-    let foods: [FoodTemplate] = [
+    let foods: [FoodTemplate]
+    
+    init() {
+        self.foods = NutritionDatabase.loadFoodsFromCSV()
+    }
+    
+    private static func loadFoodsFromCSV() -> [FoodTemplate] {
+        var loadedFoods: [FoodTemplate] = []
+        
+        // Try multiple paths for the dataset directory
+        var datasetPath: String?
+        
+        // First try: Bundle resources (for production builds)
+        if let bundlePath = Bundle.main.resourcePath {
+            let bundleDatasetPath = bundlePath + "/dataset"
+            if FileManager.default.fileExists(atPath: bundleDatasetPath) {
+                datasetPath = bundleDatasetPath
+            }
+        }
+        
+        // Second try: Relative to source code (for development)
+        if datasetPath == nil {
+            let currentFile = #file
+            let currentDirectory = (currentFile as NSString).deletingLastPathComponent
+            let projectDatasetPath = (currentDirectory as NSString).deletingLastPathComponent + "/dataset"
+            if FileManager.default.fileExists(atPath: projectDatasetPath) {
+                datasetPath = projectDatasetPath
+            }
+        }
+        
+        guard let finalDatasetPath = datasetPath else {
+            print("Error: Could not find dataset directory")
+            return getFallbackFoods()
+        }
+        
+        // List of CSV files to load
+        let csvFiles = ["FOOD-DATA-GROUP1.csv", "FOOD-DATA-GROUP2.csv", "FOOD-DATA-GROUP3.csv", "FOOD-DATA-GROUP4.csv", "FOOD-DATA-GROUP5.csv"]
+        
+        for csvFile in csvFiles {
+            let filePath = finalDatasetPath + "/" + csvFile
+            
+            guard let csvContent = try? String(contentsOfFile: filePath, encoding: .utf8) else {
+                print("Warning: Could not read file \(csvFile)")
+                continue
+            }
+            
+            let rows = csvContent.components(separatedBy: "\n")
+            
+            // Skip header row (index 0) and process data rows
+            for (index, row) in rows.enumerated() {
+                if index == 0 || row.trimmingCharacters(in: .whitespaces).isEmpty {
+                    continue
+                }
+                
+                let columns = parseCSVRow(row)
+                
+                // CSV format: ,Unnamed: 0,food,Caloric Value,Fat,...,Carbohydrates,Sugars,Protein,...
+                // Indices: 0(empty), 1(index), 2(food name), 3(calories), 4-7(fats), 8(carbs), 9(sugars), 10(protein)
+                if columns.count > 10 {
+                    let foodName = columns[2].trimmingCharacters(in: .whitespaces)
+                    
+                    if let calories = Double(columns[3]),
+                       let carbs = Double(columns[8]),
+                       let protein = Double(columns[10]) {
+                        
+                        let category = categorizeFood(name: foodName, carbs: carbs, protein: protein)
+                        
+                        let food = FoodTemplate(
+                            name: foodName.capitalized,
+                            nutritionPer100g: NutritionInfo(
+                                carbohydrates: carbs,
+                                protein: protein,
+                                calories: calories
+                            ),
+                            category: category
+                        )
+                        
+                        loadedFoods.append(food)
+                    }
+                }
+            }
+        }
+        
+        if loadedFoods.isEmpty {
+            print("Warning: No foods loaded from CSV, using fallback data")
+            return getFallbackFoods()
+        }
+        
+        print("Successfully loaded \(loadedFoods.count) foods from CSV files")
+        return loadedFoods
+    }
+    
+    private static func parseCSVRow(_ row: String) -> [String] {
+        var columns: [String] = []
+        var currentColumn = ""
+        var insideQuotes = false
+        
+        for char in row {
+            if char == "\"" {
+                insideQuotes.toggle()
+            } else if char == "," && !insideQuotes {
+                columns.append(currentColumn)
+                currentColumn = ""
+            } else {
+                currentColumn.append(char)
+            }
+        }
+        columns.append(currentColumn)
+        
+        return columns
+    }
+    
+    private static func categorizeFood(name: String, carbs: Double, protein: Double) -> String {
+        let lowercaseName = name.lowercased()
+        
+        // Check for specific food types by name
+        if lowercaseName.contains("chicken") || lowercaseName.contains("beef") || 
+           lowercaseName.contains("pork") || lowercaseName.contains("turkey") ||
+           lowercaseName.contains("fish") || lowercaseName.contains("salmon") ||
+           lowercaseName.contains("tuna") || lowercaseName.contains("egg") ||
+           lowercaseName.contains("tofu") || lowercaseName.contains("meat") {
+            return "Protein"
+        }
+        
+        if lowercaseName.contains("rice") || lowercaseName.contains("pasta") ||
+           lowercaseName.contains("bread") || lowercaseName.contains("potato") ||
+           lowercaseName.contains("oat") || lowercaseName.contains("cereal") ||
+           lowercaseName.contains("quinoa") || lowercaseName.contains("noodle") {
+            return "Carbs"
+        }
+        
+        if lowercaseName.contains("apple") || lowercaseName.contains("banana") ||
+           lowercaseName.contains("orange") || lowercaseName.contains("berry") ||
+           lowercaseName.contains("grape") || lowercaseName.contains("melon") ||
+           lowercaseName.contains("peach") || lowercaseName.contains("pear") ||
+           lowercaseName.contains("fruit") {
+            return "Fruits"
+        }
+        
+        if lowercaseName.contains("cheese") || lowercaseName.contains("milk") ||
+           lowercaseName.contains("yogurt") || lowercaseName.contains("butter") ||
+           lowercaseName.contains("cream") {
+            return "Dairy"
+        }
+        
+        if lowercaseName.contains("almond") || lowercaseName.contains("peanut") ||
+           lowercaseName.contains("walnut") || lowercaseName.contains("nut") ||
+           lowercaseName.contains("seed") {
+            return "Nuts"
+        }
+        
+        // Categorize by nutritional content
+        if protein >= 10 && carbs < 15 {
+            return "Protein"
+        } else if carbs >= 20 {
+            return "Carbs"
+        } else if carbs < 10 && protein < 5 {
+            return "Vegetables"
+        }
+        
+        return "Other"
+    }
+    
+    private static func getFallbackFoods() -> [FoodTemplate] {
+        return [
         // Proteins
         FoodTemplate(name: "Eggs", nutritionPer100g: NutritionInfo(carbohydrates: 1.1, protein: 13.0, calories: 155), category: "Protein"),
         FoodTemplate(name: "Chicken Breast", nutritionPer100g: NutritionInfo(carbohydrates: 0, protein: 31.0, calories: 165), category: "Protein"),
@@ -74,8 +238,9 @@ class NutritionDatabase {
         FoodTemplate(name: "Almonds", nutritionPer100g: NutritionInfo(carbohydrates: 22.0, protein: 21.0, calories: 579), category: "Nuts"),
         FoodTemplate(name: "Peanuts", nutritionPer100g: NutritionInfo(carbohydrates: 16.0, protein: 26.0, calories: 567), category: "Nuts"),
         FoodTemplate(name: "Walnuts", nutritionPer100g: NutritionInfo(carbohydrates: 14.0, protein: 15.0, calories: 654), category: "Nuts"),
-        FoodTemplate(name: "Peanut Butter", nutritionPer100g: NutritionInfo(carbohydrates: 20.0, protein: 25.0, calories: 588), category: "Nuts"),
-    ]
+            FoodTemplate(name: "Peanut Butter", nutritionPer100g: NutritionInfo(carbohydrates: 20.0, protein: 25.0, calories: 588), category: "Nuts"),
+        ]
+    }
     
     let drinks: [DrinkTemplate] = [
         // Non-Alcoholic
