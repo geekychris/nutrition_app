@@ -31,6 +31,12 @@ class NutritionDatabase {
         var datasetPath: String?
         
         // First try: Bundle resources (for production builds)
+        // CSV files are added directly to bundle root
+        if let bundlePath = Bundle.main.resourcePath {
+            datasetPath = bundlePath
+        }
+        
+        // Second try: dataset subdirectory in bundle (alternative)
         if let bundlePath = Bundle.main.resourcePath {
             let bundleDatasetPath = bundlePath + "/dataset"
             if FileManager.default.fileExists(atPath: bundleDatasetPath) {
@@ -38,7 +44,7 @@ class NutritionDatabase {
             }
         }
         
-        // Second try: Relative to source code (for development)
+        // Third try: Relative to source code (for development/simulator)
         if datasetPath == nil {
             let currentFile = #file
             let currentDirectory = (currentFile as NSString).deletingLastPathComponent

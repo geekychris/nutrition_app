@@ -8,6 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		835882E72EAC9B4C000FE45E /* SyncMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835882E62EAC9B4C000FE45E /* SyncMonitor.swift */; };
+		835882EE2EADFD5B000FE45E /* FOOD-DATA-GROUP1.csv in Resources */ = {isa = PBXBuildFile; fileRef = 835882E82EADFD5B000FE45E /* FOOD-DATA-GROUP1.csv */; };
+		835882EF2EADFD5B000FE45E /* FOOD-DATA-GROUP2.csv in Resources */ = {isa = PBXBuildFile; fileRef = 835882E92EADFD5B000FE45E /* FOOD-DATA-GROUP2.csv */; };
+		835882F02EADFD5B000FE45E /* FOOD-DATA-GROUP3.csv in Resources */ = {isa = PBXBuildFile; fileRef = 835882EA2EADFD5B000FE45E /* FOOD-DATA-GROUP3.csv */; };
+		835882F12EADFD5B000FE45E /* FOOD-DATA-GROUP4.csv in Resources */ = {isa = PBXBuildFile; fileRef = 835882EB2EADFD5B000FE45E /* FOOD-DATA-GROUP4.csv */; };
+		835882F22EADFD5B000FE45E /* FOOD-DATA-GROUP5.csv in Resources */ = {isa = PBXBuildFile; fileRef = 835882EC2EADFD5B000FE45E /* FOOD-DATA-GROUP5.csv */; };
 		83A2D29A2EAC4AAE00E7B748 /* NutritionAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A2D2982EAC4AAE00E7B748 /* NutritionAPIService.swift */; };
 		83A2D29B2EAC4AAE00E7B748 /* OnlineFoodSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A2D2992EAC4AAE00E7B748 /* OnlineFoodSearchView.swift */; };
 		83A2D29E2EAC4D6600E7B748 /* SettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A2D29C2EAC4D6600E7B748 /* SettingsManager.swift */; };
@@ -28,6 +33,11 @@
 
 /* Begin PBXFileReference section */
 		835882E62EAC9B4C000FE45E /* SyncMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncMonitor.swift; sourceTree = "<group>"; };
+		835882E82EADFD5B000FE45E /* FOOD-DATA-GROUP1.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "FOOD-DATA-GROUP1.csv"; sourceTree = "<group>"; };
+		835882E92EADFD5B000FE45E /* FOOD-DATA-GROUP2.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "FOOD-DATA-GROUP2.csv"; sourceTree = "<group>"; };
+		835882EA2EADFD5B000FE45E /* FOOD-DATA-GROUP3.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "FOOD-DATA-GROUP3.csv"; sourceTree = "<group>"; };
+		835882EB2EADFD5B000FE45E /* FOOD-DATA-GROUP4.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "FOOD-DATA-GROUP4.csv"; sourceTree = "<group>"; };
+		835882EC2EADFD5B000FE45E /* FOOD-DATA-GROUP5.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "FOOD-DATA-GROUP5.csv"; sourceTree = "<group>"; };
 		83A2D2982EAC4AAE00E7B748 /* NutritionAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionAPIService.swift; sourceTree = "<group>"; };
 		83A2D2992EAC4AAE00E7B748 /* OnlineFoodSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineFoodSearchView.swift; sourceTree = "<group>"; };
 		83A2D29C2EAC4D6600E7B748 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
@@ -60,11 +70,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		835882ED2EADFD5B000FE45E /* dataset */ = {
+			isa = PBXGroup;
+			children = (
+				835882E82EADFD5B000FE45E /* FOOD-DATA-GROUP1.csv */,
+				835882E92EADFD5B000FE45E /* FOOD-DATA-GROUP2.csv */,
+				835882EA2EADFD5B000FE45E /* FOOD-DATA-GROUP3.csv */,
+				835882EB2EADFD5B000FE45E /* FOOD-DATA-GROUP4.csv */,
+				835882EC2EADFD5B000FE45E /* FOOD-DATA-GROUP5.csv */,
+			);
+			path = dataset;
+			sourceTree = "<group>";
+		};
 		EE0000010000000000000001 = {
 			isa = PBXGroup;
 			children = (
 				FF0000010000000000000001 /* NutritionTracker */,
 				GG0000010000000000000001 /* Products */,
+				835882ED2EADFD5B000FE45E /* dataset */,
 			);
 			sourceTree = "<group>";
 		};
@@ -156,11 +179,16 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		KK0000010000000000000001 /* Resources */ = {
+	KK0000010000000000000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				AA000001000000000000000A /* Assets.xcassets in Resources */,
+				835882EE2EADFD5B000FE45E /* FOOD-DATA-GROUP1.csv in Resources */,
+				835882EF2EADFD5B000FE45E /* FOOD-DATA-GROUP2.csv in Resources */,
+				835882F02EADFD5B000FE45E /* FOOD-DATA-GROUP3.csv in Resources */,
+				835882F12EADFD5B000FE45E /* FOOD-DATA-GROUP4.csv in Resources */,
+				835882F22EADFD5B000FE45E /* FOOD-DATA-GROUP5.csv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
