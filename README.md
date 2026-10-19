@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="Nutrition App logo" width="180">
+</p>
+
 # Nutrition Tracker
 
 A native iOS app for tracking food and drink intake, monitoring macronutrients, and visualizing nutritional data over time.
