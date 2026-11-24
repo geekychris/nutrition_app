@@ -15,82 +15,18 @@ struct MealsListView: View {
             List {
                 // Hidden view that triggers refresh when sync occurs
                 EmptyView().id(syncMonitor.refreshTrigger)
-                ForEach(meals) { meal in
-                    Button(action: {
-                        editingMeal = meal
-                    }) {
-                        HStack(spacing: 12) {
-                            // Show photo thumbnail if available
-                            if let photoData = meal.photoData, let uiImage = UIImage(data: photoData) {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 60, height: 60)
-                                    .cornerRadius(8)
-                                    .clipped()
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Text(meal.name)
-                                        .font(.headline)
-                                        .foregroundColor(.primary)
-                                    
-                                    // Show warning icon for incomplete meals
-                                    if meal.isIncomplete {
-                                        Image(systemName: "exclamationmark.triangle.fill")
-                                            .foregroundColor(.orange)
-                                            .font(.caption)
-                                    }
-                                    
-                                    Spacer()
-                                    Text(meal.timestamp, style: .date)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                            
-                                if !(meal.foods?.isEmpty ?? true) {
-                                    Text("Foods: \((meal.foods ?? []).map { $0.name }.joined(separator: ", "))")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                if !(meal.drinks?.isEmpty ?? true) {
-                                    Text("Drinks: \((meal.drinks ?? []).map { $0.name }.joined(separator: ", "))")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                // Show incomplete warning
-                                if meal.isIncomplete {
-                                    Text("⚠️ Add nutrition details")
-                                        .font(.caption)
-                                        .foregroundColor(.orange)
-                                        .fontWeight(.medium)
-                                }
-                                
-                                HStack {
-                                    Label("\(settings.formatNutritionalWeight(meal.totalNutrition.carbohydrates))\(settings.nutritionalWeightUnit)", systemImage: "leaf.fill")
-                                    Label("\(settings.formatNutritionalWeight(meal.totalNutrition.protein))\(settings.nutritionalWeightUnit)", systemImage: "scalemass.fill")
-                                    Label("\(meal.totalNutrition.calories, specifier: "%.0f")", systemImage: "flame.fill")
-                                }
-                                .font(.caption2)
-                                .foregroundColor(.blue)
-                            }
+                ForEach(mealsByDay, id: \.day) { group in
+                    Section {
+                        ForEach(group.meals) { meal in
+                            mealRow(meal)
                         }
-                        .padding(.vertical, 4)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .swipeActions(edge: .leading) {
-                        Button {
-                            cloneMeal(meal)
-                        } label: {
-                            Label("Clone", systemImage: "doc.on.doc")
+                        .onDelete { offsets in
+                            deleteMeals(offsets.map { group.meals[$0] })
                         }
-                        .tint(.green)
+                    } header: {
+                        dayHeader(group.day, meals: group.meals)
                     }
                 }
-                .onDelete(perform: deleteMeal)
             }
             .navigationTitle("Meals")
             .toolbar {
@@ -112,6 +48,110 @@ struct MealsListView: View {
         }
         .sheet(item: $editingMeal) { meal in
             MealEditorView(meal: meal)
+        }
+    }
+    
+    private var mealsByDay: [(day: Date, meals: [Meal])] {
+        let calendar = Calendar.current
+        let grouped = Dictionary(grouping: meals) { calendar.startOfDay(for: $0.timestamp) }
+        return grouped
+            .map { (day: $0.key, meals: $0.value.sorted { $0.timestamp > $1.timestamp }) }
+            .sorted { $0.day > $1.day }
+    }
+    
+    private func dayHeader(_ day: Date, meals: [Meal]) -> some View {
+        let total = meals.reduce(NutritionInfo.zero) { $0 + $1.totalNutrition }
+        let calendar = Calendar.current
+        let title: String
+        if calendar.isDateInToday(day) {
+            title = "Today"
+        } else if calendar.isDateInYesterday(day) {
+            title = "Yesterday"
+        } else {
+            title = day.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
+        }
+        return HStack {
+            Text(title)
+            Spacer()
+            Text("C \(total.carbohydrates, specifier: "%.0f")g · P \(total.protein, specifier: "%.0f")g · \(total.calories, specifier: "%.0f") kcal")
+                .monospacedDigit()
+        }
+    }
+    
+    @ViewBuilder
+    private func mealRow(_ meal: Meal) -> some View {
+        Button(action: {
+            editingMeal = meal
+        }) {
+            HStack(spacing: 12) {
+                // Show photo thumbnail if available
+                if let photoData = meal.photoData, let uiImage = UIImage(data: photoData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 60, height: 60)
+                        .cornerRadius(8)
+                        .clipped()
+                }
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(meal.name)
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        // Show warning icon for incomplete meals
+                        if meal.isIncomplete {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.orange)
+                                .font(.caption)
+                        }
+                        
+                        Spacer()
+                        Text(meal.timestamp, style: .time)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                
+                    if !(meal.foods?.isEmpty ?? true) {
+                        Text("Foods: \((meal.foods ?? []).map { $0.name }.joined(separator: ", "))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if !(meal.drinks?.isEmpty ?? true) {
+                        Text("Drinks: \((meal.drinks ?? []).map { $0.name }.joined(separator: ", "))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    // Show incomplete warning
+                    if meal.isIncomplete {
+                        Text("⚠️ Add nutrition details")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                            .fontWeight(.medium)
+                    }
+                    
+                    HStack {
+                        Label("\(settings.formatNutritionalWeight(meal.totalNutrition.carbohydrates))\(settings.nutritionalWeightUnit)", systemImage: "leaf.fill")
+                        Label("\(settings.formatNutritionalWeight(meal.totalNutrition.protein))\(settings.nutritionalWeightUnit)", systemImage: "scalemass.fill")
+                        Label("\(meal.totalNutrition.calories, specifier: "%.0f")", systemImage: "flame.fill")
+                    }
+                    .font(.caption2)
+                    .foregroundColor(.blue)
+                }
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .swipeActions(edge: .leading) {
+            Button {
+                cloneMeal(meal)
+            } label: {
+                Label("Clone", systemImage: "doc.on.doc")
+            }
+            .tint(.green)
         }
     }
     
@@ -165,11 +205,15 @@ struct MealsListView: View {
         try? modelContext.save()
     }
     
-    private func deleteMeal(at offsets: IndexSet) {
-        for index in offsets {
-            modelContext.delete(meals[index])
+    private func deleteMeals(_ mealsToDelete: [Meal]) {
+        for meal in mealsToDelete {
+            modelContext.delete(meal)
         }
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+        } catch {
+            print("❌ Error deleting meal: \(error)")
+        }
     }
     
     private func refreshData() async {

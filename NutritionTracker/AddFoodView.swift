@@ -6,7 +6,7 @@ struct AddFoodView: View {
     @ObservedObject var settings = SettingsManager.shared
     
     @State private var name = ""
-    @State private var weight = "" // Always stored in grams internally
+    @State private var weightInput = "" // In the user's display unit (g or oz)
     @State private var carbs = ""
     @State private var protein = ""
     @State private var calories = ""
@@ -62,40 +62,19 @@ struct AddFoodView: View {
                     HStack {
                         Text("Weight")
                             .frame(width: 80, alignment: .leading)
-                        TextField(settings.measurementUnit.weightUnit, text: Binding(
-                            get: { displayWeight },
-                            set: { newValue in
-                                // Convert displayed value to grams for storage
-                                if let displayValue = Double(newValue) {
-                                    let grams = settings.measurementUnit == .imperial 
-                                        ? settings.ouncesToGrams(displayValue)
-                                        : displayValue
-                                    weight = String(format: "%.1f", grams)
-                                    recalculateFromWeight()
-                                } else {
-                                    weight = newValue
-                                }
+                        TextField(settings.measurementUnit.weightUnit, text: $weightInput)
+                            .onChange(of: weightInput) { _, _ in
+                                recalculateFromWeight()
                             }
-                        ))
                         .keyboardType(.decimalPad)
                         
                         Text(settings.measurementUnit.weightUnit)
                             .foregroundColor(.secondary)
                         
-                        if let weightVal = Double(weight), hasBaseNutrition() {
+                        if hasBaseNutrition() {
                             Stepper("", value: Binding(
-                                get: { 
-                                    settings.measurementUnit == .imperial 
-                                        ? settings.gramsToOunces(weightVal)
-                                        : weightVal
-                                },
-                                set: { newWeight in
-                                    let grams = settings.measurementUnit == .imperial
-                                        ? settings.ouncesToGrams(newWeight)
-                                        : newWeight
-                                    weight = String(format: "%.1f", grams)
-                                    recalculateFromWeight()
-                                }
+                                get: { Double(weightInput) ?? 0 },
+                                set: { weightInput = Self.formatInput($0) }
                             ), in: displayWeightRange, step: displayWeightStep)
                             .labelsHidden()
                         }
@@ -173,15 +152,14 @@ struct AddFoodView: View {
         }
     }
     
-    private var displayWeight: String {
-        guard let weightGrams = Double(weight) else { return weight }
-        
-        switch settings.measurementUnit {
-        case .metric:
-            return String(format: "%.1f", weightGrams)
-        case .imperial:
-            return String(format: "%.2f", settings.gramsToOunces(weightGrams))
-        }
+    /// Weight in grams parsed from the input field, converting from ounces when imperial.
+    private var weightGrams: Double? {
+        guard let value = Double(weightInput.replacingOccurrences(of: ",", with: ".")) else { return nil }
+        return settings.measurementUnit == .imperial ? settings.ouncesToGrams(value) : value
+    }
+    
+    private static func formatInput(_ value: Double) -> String {
+        value.rounded() == value ? String(format: "%.0f", value) : String(format: "%.2f", value)
     }
     
     private var displayWeightRange: ClosedRange<Double> {
@@ -204,7 +182,7 @@ struct AddFoodView: View {
     
     private var isValid: Bool {
         !name.isEmpty &&
-        Double(weight) != nil &&
+        (weightGrams ?? 0) > 0 &&
         Double(carbs) != nil &&
         Double(protein) != nil &&
         Double(calories) != nil
@@ -216,7 +194,7 @@ struct AddFoodView: View {
     }
     
     private func recalculateFromWeight() {
-        guard let weightVal = Double(weight), weightVal > 0,
+        guard let weightVal = weightGrams, weightVal > 0,
               let baseCarbsPer100g = baseCarbsPer100g,
               let baseProteinPer100g = baseProteinPer100g,
               let baseCaloriesPer100g = baseCaloriesPer100g else {
@@ -238,19 +216,11 @@ struct AddFoodView: View {
         baseProteinPer100g = template.nutritionPer100g.protein
         baseCaloriesPer100g = template.nutritionPer100g.calories
         
-        // If weight is already entered, calculate nutrition
-        if let weightVal = Double(weight), weightVal > 0 {
-            let ratio = weightVal / 100.0
-            carbs = String(format: "%.1f", template.nutritionPer100g.carbohydrates * ratio)
-            protein = String(format: "%.1f", template.nutritionPer100g.protein * ratio)
-            calories = String(format: "%.0f", template.nutritionPer100g.calories * ratio)
-        } else {
-            // Set values for 100g by default
-            weight = "100"
-            carbs = String(format: "%.1f", template.nutritionPer100g.carbohydrates)
-            protein = String(format: "%.1f", template.nutritionPer100g.protein)
-            calories = String(format: "%.0f", template.nutritionPer100g.calories)
+        if (weightGrams ?? 0) <= 0 {
+            // Default to 100 g (or the nearest round ounce amount)
+            weightInput = settings.measurementUnit == .imperial ? "3.5" : "100"
         }
+        recalculateFromWeight()
     }
     
     private func selectOnlineFood(_ usdaFood: USDAFood) {
@@ -264,23 +234,15 @@ struct AddFoodView: View {
         baseProteinPer100g = nutritionPer100g.protein
         baseCaloriesPer100g = nutritionPer100g.calories
         
-        // If weight is already entered, calculate nutrition
-        if let weightVal = Double(weight), weightVal > 0 {
-            let ratio = weightVal / 100.0
-            carbs = String(format: "%.1f", nutritionPer100g.carbohydrates * ratio)
-            protein = String(format: "%.1f", nutritionPer100g.protein * ratio)
-            calories = String(format: "%.0f", nutritionPer100g.calories * ratio)
-        } else {
-            // Set values for 100g by default
-            weight = "100"
-            carbs = String(format: "%.1f", nutritionPer100g.carbohydrates)
-            protein = String(format: "%.1f", nutritionPer100g.protein)
-            calories = String(format: "%.0f", nutritionPer100g.calories)
+        if (weightGrams ?? 0) <= 0 {
+            // Default to 100 g (or the nearest round ounce amount)
+            weightInput = settings.measurementUnit == .imperial ? "3.5" : "100"
         }
+        recalculateFromWeight()
     }
     
     private func addFood() {
-        guard let weightVal = Double(weight),
+        guard let weightVal = weightGrams,
               let carbsVal = Double(carbs),
               let proteinVal = Double(protein),
               let caloriesVal = Double(calories) else {

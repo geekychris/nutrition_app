@@ -24,6 +24,7 @@ class SettingsManager: ObservableObject {
     static let shared = SettingsManager()
     
     @AppStorage("measurementUnit") var measurementUnit: MeasurementUnit = .metric
+    @AppStorage("usdaAPIKey") var usdaAPIKey: String = ""
     
     // Conversion helpers
     func gramsToOunces(_ grams: Double) -> Double {
@@ -72,18 +73,14 @@ class SettingsManager: ObservableObject {
         return "\(formatVolume(ml)) \(measurementUnit.volumeUnit)"
     }
     
-    // Format nutritional weights (carbs, protein, etc.) - typically shown to 1 decimal
+    // Format nutritional weights (carbs, protein). Macros are entered and labelled in grams
+    // everywhere (as on nutrition labels), so they stay in grams regardless of unit system.
     func formatNutritionalWeight(_ grams: Double) -> String {
-        switch measurementUnit {
-        case .metric:
-            return String(format: "%.1f", grams)
-        case .imperial:
-            return String(format: "%.2f", gramsToOunces(grams))
-        }
+        return String(format: "%.1f", grams)
     }
     
     // Get the unit label for nutritional info
     var nutritionalWeightUnit: String {
-        return measurementUnit.weightUnit
+        return "g"
     }
 }

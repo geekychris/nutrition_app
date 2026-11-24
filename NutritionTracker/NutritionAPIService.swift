@@ -50,29 +50,52 @@ struct USDANutrient: Codable {
     let unitName: String?
 }
 
+enum NutritionAPIError: LocalizedError {
+    case rateLimited
+    
+    var errorDescription: String? {
+        "USDA rate limit reached. Add your own free API key in Settings, or try again later."
+    }
+}
+
 class NutritionAPIService {
     static let shared = NutritionAPIService()
     
     // USDA FoodData Central API - free, no API key required for basic search
     private let baseURL = "https://api.nal.usda.gov/fdc/v1"
     
+    // Free personal keys: https://fdc.nal.usda.gov/api-key-signup.html
+    // DEMO_KEY works without signup but is heavily rate-limited.
+    private var apiKey: String {
+        let key = SettingsManager.shared.usdaAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        return key.isEmpty ? "DEMO_KEY" : key
+    }
+    
     func searchFood(query: String) async throws -> [USDAFood] {
-        // Note: For production, you should get a free API key from https://fdc.nal.usda.gov/api-key-signup.html
-        // For now, using DEMO_KEY which has limited requests
-        let apiKey = "DEMO_KEY"
+        let apiKey = self.apiKey
         
         guard !query.isEmpty else { return [] }
         
-        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
         // Removed dataType filter to get all food types (Branded, Survey, Foundation, etc.)
-        let urlString = "\(baseURL)/foods/search?api_key=\(apiKey)&query=\(encodedQuery)&pageSize=20"
+        var components = URLComponents(string: "\(baseURL)/foods/search")
+        components?.queryItems = [
+            URLQueryItem(name: "api_key", value: apiKey),
+            URLQueryItem(name: "query", value: query),
+            URLQueryItem(name: "pageSize", value: "20")
+        ]
+        // URLQueryItem leaves "+" unescaped, which the server would read as a space
+        let encodedQuery = components?.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        components?.percentEncodedQuery = encodedQuery
         
-        guard let url = URL(string: urlString) else {
+        guard let url = components?.url else {
             throw URLError(.badURL)
         }
         
         let (data, response) = try await URLSession.shared.data(from: url)
         
+        if (response as? HTTPURLResponse)?.statusCode == 429 {
+            throw NutritionAPIError.rateLimited
+        }
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
             throw URLError(.badServerResponse)
@@ -83,8 +106,7 @@ class NutritionAPIService {
     }
     
     func getFoodDetails(fdcId: Int) async throws -> USDAFood {
-        let apiKey = "DEMO_KEY"
-        let urlString = "\(baseURL)/food/\(fdcId)?api_key=\(apiKey)"
+        let urlString = "\(baseURL)/food/\(fdcId)?api_key=\(self.apiKey)"
         
         guard let url = URL(string: urlString) else {
             throw URLError(.badURL)
@@ -92,6 +114,9 @@ class NutritionAPIService {
         
         let (data, response) = try await URLSession.shared.data(from: url)
         
+        if (response as? HTTPURLResponse)?.statusCode == 429 {
+            throw NutritionAPIError.rateLimited
+        }
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
             throw URLError(.badServerResponse)
