@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var showingSettings = false
-    
     var body: some View {
         TabView {
             MealsListView()
@@ -15,17 +13,10 @@ struct ContentView: View {
                     Label("Summary", systemImage: "chart.bar")
                 }
             
-            Button(action: {
-                showingSettings = true
-            }) {
-                Label("Settings", systemImage: "gear")
-            }
-            .tabItem {
-                Label("Settings", systemImage: "gear")
-            }
-        }
-        .sheet(isPresented: $showingSettings) {
             SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
+                }
         }
     }
 }

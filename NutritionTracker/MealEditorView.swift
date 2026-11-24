@@ -17,6 +17,7 @@ struct MealEditorView: View {
     @State private var showingPhotoOptions = false
     @State private var imageSourceType: UIImagePickerController.SourceType = .photoLibrary
     @State private var saveError: String?
+    @State private var photoChanged = false
     
     var meal: Meal?
     
@@ -30,6 +31,8 @@ struct MealEditorView: View {
             if let photoData = meal.photoData, let image = UIImage(data: photoData) {
                 _mealPhoto = State(initialValue: image)
             }
+        } else {
+            _mealName = State(initialValue: Self.suggestedMealName(for: Date()))
         }
     }
     
@@ -57,6 +60,7 @@ struct MealEditorView: View {
                             
                             Button("Remove Photo", role: .destructive) {
                                 mealPhoto = nil
+                                photoChanged = true
                             }
                             .font(.caption)
                         }
@@ -157,6 +161,9 @@ struct MealEditorView: View {
             .sheet(isPresented: $showingImagePicker) {
                 ImagePicker(image: $mealPhoto, sourceType: imageSourceType)
             }
+            .onChange(of: mealPhoto) { _, _ in
+                photoChanged = true
+            }
             .confirmationDialog("Add Photo", isPresented: $showingPhotoOptions, titleVisibility: .visible) {
                 if UIImagePickerController.isSourceTypeAvailable(.camera) {
                     Button("Take Photo") {
@@ -171,13 +178,37 @@ struct MealEditorView: View {
                 Button("Cancel", role: .cancel) {}
             }
         }
-        .alert("Save Error", isPresented: .constant(saveError != nil)) {
+        .alert("Save Error", isPresented: Binding(get: { saveError != nil }, set: { if !$0 { saveError = nil } })) {
             Button("OK") { saveError = nil }
         } message: {
             if let error = saveError {
                 Text(error)
             }
         }
+    }
+    
+    private static func suggestedMealName(for date: Date) -> String {
+        switch Calendar.current.component(.hour, from: date) {
+        case 4..<11: return "Breakfast"
+        case 11..<15: return "Lunch"
+        case 17..<22: return "Dinner"
+        default: return "Snack"
+        }
+    }
+    
+    private static func encodePhoto(_ image: UIImage, maxDimension: CGFloat = 1600) -> Data? {
+        let longest = max(image.size.width, image.size.height)
+        guard longest > maxDimension else {
+            return image.jpegData(compressionQuality: 0.7)
+        }
+        let scale = maxDimension / longest
+        let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        let resized = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }
+        return resized.jpegData(compressionQuality: 0.7)
     }
     
     private func calculateTotal() -> NutritionInfo {
@@ -191,36 +222,38 @@ struct MealEditorView: View {
         print("📝 Meal name: \(mealName)")
         print("🍽️ Foods: \(foods.count), Drinks: \(drinks.count)")
         
-        // Convert photo to Data
-        let photoData = mealPhoto?.jpegData(compressionQuality: 0.7)
+        // Only re-encode the photo when it changed, so repeated edits don't degrade it.
+        // Downscale first: full-resolution camera images bloat the store and CloudKit records.
+        let photoData = photoChanged ? mealPhoto.flatMap { Self.encodePhoto($0) } : meal?.photoData
         
         if let existingMeal = meal {
             // Update existing meal
             existingMeal.name = mealName
             existingMeal.timestamp = mealDate
-            existingMeal.photoData = photoData
-            
-            // Remove old foods and drinks
-            if let oldFoods = existingMeal.foods {
-                for food in oldFoods {
-                    modelContext.delete(food)
-                }
-            }
-            if let oldDrinks = existingMeal.drinks {
-                for drink in oldDrinks {
-                    modelContext.delete(drink)
-                }
+            if photoChanged {
+                existingMeal.photoData = photoData
             }
             
-            // Insert new foods and drinks
-            for food in foods {
+            // Delete only the items the user removed. `foods`/`drinks` still hold the
+            // meal's existing objects, so deleting all old items would delete those too.
+            let keptFoodIDs = Set(foods.map(\.persistentModelID))
+            for food in existingMeal.foods ?? [] where !keptFoodIDs.contains(food.persistentModelID) {
+                modelContext.delete(food)
+            }
+            let keptDrinkIDs = Set(drinks.map(\.persistentModelID))
+            for drink in existingMeal.drinks ?? [] where !keptDrinkIDs.contains(drink.persistentModelID) {
+                modelContext.delete(drink)
+            }
+            
+            // Insert newly added foods and drinks
+            for food in foods where food.modelContext == nil {
                 modelContext.insert(food)
-                food.meal = existingMeal
             }
-            for drink in drinks {
+            for drink in drinks where drink.modelContext == nil {
                 modelContext.insert(drink)
-                drink.meal = existingMeal
             }
+            for food in foods { food.meal = existingMeal }
+            for drink in drinks { drink.meal = existingMeal }
             
             existingMeal.foods = foods
             existingMeal.drinks = drinks

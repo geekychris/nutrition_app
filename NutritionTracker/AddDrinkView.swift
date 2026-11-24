@@ -6,7 +6,7 @@ struct AddDrinkView: View {
     @ObservedObject var settings = SettingsManager.shared
     
     @State private var name = ""
-    @State private var volume = ""
+    @State private var volumeInput = "" // In the user's display unit (ml or fl oz)
     @State private var carbs = ""
     @State private var protein = ""
     @State private var calories = ""
@@ -53,23 +53,10 @@ struct AddDrinkView: View {
                     }
                     
                     HStack {
-                        TextField(settings.measurementUnit.volumeUnit, text: Binding(
-                            get: { displayVolume },
-                            set: { newValue in
-                                // Convert displayed value to ml for storage
-                                if let displayValue = Double(newValue) {
-                                    let ml = settings.measurementUnit == .imperial
-                                        ? settings.fluidOuncesToMl(displayValue)
-                                        : displayValue
-                                    volume = String(format: "%.0f", ml)
-                                    if !carbs.isEmpty || !protein.isEmpty || !calories.isEmpty {
-                                        recalculateNutrition()
-                                    }
-                                } else {
-                                    volume = newValue
-                                }
+                        TextField(settings.measurementUnit.volumeUnit, text: $volumeInput)
+                            .onChange(of: volumeInput) { _, _ in
+                                recalculateNutrition()
                             }
-                        ))
                         .keyboardType(.decimalPad)
                         
                         Text(settings.measurementUnit.volumeUnit)
@@ -102,20 +89,15 @@ struct AddDrinkView: View {
         }
     }
     
-    private var displayVolume: String {
-        guard let volumeMl = Double(volume) else { return volume }
-        
-        switch settings.measurementUnit {
-        case .metric:
-            return String(format: "%.0f", volumeMl)
-        case .imperial:
-            return String(format: "%.1f", settings.mlToFluidOunces(volumeMl))
-        }
+    /// Volume in ml parsed from the input field, converting from fl oz when imperial.
+    private var volumeMl: Double? {
+        guard let value = Double(volumeInput.replacingOccurrences(of: ",", with: ".")) else { return nil }
+        return settings.measurementUnit == .imperial ? settings.fluidOuncesToMl(value) : value
     }
     
     private var isValid: Bool {
         !name.isEmpty &&
-        Double(volume) != nil &&
+        (volumeMl ?? 0) > 0 &&
         Double(carbs) != nil &&
         Double(protein) != nil &&
         Double(calories) != nil
@@ -126,25 +108,17 @@ struct AddDrinkView: View {
         isAlcoholic = template.isAlcoholic
         showingSuggestions = false
         
-        // If volume is already entered, calculate nutrition
-        if let volumeVal = Double(volume), volumeVal > 0 {
-            let ratio = volumeVal / 100.0
-            carbs = String(format: "%.1f", template.nutritionPer100ml.carbohydrates * ratio)
-            protein = String(format: "%.1f", template.nutritionPer100ml.protein * ratio)
-            calories = String(format: "%.0f", template.nutritionPer100ml.calories * ratio)
-        } else {
-            // Set values for 100ml by default
-            volume = "100"
-            carbs = String(format: "%.1f", template.nutritionPer100ml.carbohydrates)
-            protein = String(format: "%.1f", template.nutritionPer100ml.protein)
-            calories = String(format: "%.0f", template.nutritionPer100ml.calories)
+        if (volumeMl ?? 0) <= 0 {
+            // Default to 100 ml (or a round fl oz amount)
+            volumeInput = settings.measurementUnit == .imperial ? "3.4" : "100"
         }
+        recalculateNutrition()
     }
     
     private func recalculateNutrition() {
         // Find if current name matches a template
         if let template = NutritionDatabase.shared.drinks.first(where: { $0.name == name }),
-           let volumeVal = Double(volume), volumeVal > 0 {
+           let volumeVal = volumeMl, volumeVal > 0 {
             let ratio = volumeVal / 100.0
             carbs = String(format: "%.1f", template.nutritionPer100ml.carbohydrates * ratio)
             protein = String(format: "%.1f", template.nutritionPer100ml.protein * ratio)
@@ -153,7 +127,7 @@ struct AddDrinkView: View {
     }
     
     private func addDrink() {
-        guard let volumeVal = Double(volume),
+        guard let volumeVal = volumeMl,
               let carbsVal = Double(carbs),
               let proteinVal = Double(protein),
               let caloriesVal = Double(calories) else {

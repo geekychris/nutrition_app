@@ -33,10 +33,12 @@ struct SummaryView: View {
                     .pickerStyle(.segmented)
                     .padding()
                     
-                    if selectedTimeframe == .daily {
-                        dailyView
-                    } else {
-                        weeklyView
+                    ScrollView {
+                        if selectedTimeframe == .daily {
+                            dailyView
+                        } else {
+                            weeklyView
+                        }
                     }
                 }
             }
@@ -55,17 +57,18 @@ struct SummaryView: View {
                     .padding()
             } else {
                 // Chart for last 7 days
-                if summaries.count > 1 {
+                let lastWeek = lastSevenDays(summaries)
+                if lastWeek.contains(where: { $0.calories > 0 }) {
                     VStack(alignment: .leading) {
                         Text("Last 7 Days")
                             .font(.headline)
                             .padding(.horizontal)
                         
                         Chart {
-                            ForEach(Array(summaries.prefix(7))) { summary in
+                            ForEach(lastWeek, id: \.date) { day in
                                 BarMark(
-                                    x: .value("Date", summary.date, unit: .day),
-                                    y: .value("Calories", summary.totalNutrition.calories)
+                                    x: .value("Date", day.date, unit: .day),
+                                    y: .value("Calories", day.calories)
                                 )
                                 .foregroundStyle(.blue)
                             }
@@ -199,6 +202,16 @@ struct SummaryView: View {
                     .padding(.horizontal)
                 }
             }
+        }
+    }
+    
+    /// Calories for each of the last 7 calendar days (including today), zero-filled.
+    private func lastSevenDays(_ summaries: [DailySummary]) -> [(date: Date, calories: Double)] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let byDay = Dictionary(uniqueKeysWithValues: summaries.map { ($0.date, $0.totalNutrition.calories) })
+        return (0..<7).reversed().compactMap { offset in
+            calendar.date(byAdding: .day, value: -offset, to: today).map { ($0, byDay[$0] ?? 0) }
         }
     }
 }

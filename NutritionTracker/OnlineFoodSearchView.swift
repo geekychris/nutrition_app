@@ -126,7 +126,9 @@ struct OnlineFoodSearchView: View {
             } catch {
                 await MainActor.run {
                     isSearching = false
-                    if let urlError = error as? URLError {
+                    if let apiError = error as? NutritionAPIError {
+                        errorMessage = apiError.localizedDescription
+                    } else if let urlError = error as? URLError {
                         switch urlError.code {
                         case .notConnectedToInternet:
                             errorMessage = "No internet connection"

@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var settings = SettingsManager.shared
-    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         NavigationView {
@@ -36,7 +35,18 @@ struct SettingsView: View {
                 } header: {
                     Text("Measurements")
                 } footer: {
-                    Text("Choose your preferred measurement system. All entries will be converted automatically.")
+                    Text("Choose your preferred measurement system. Food weights and drink volumes are shown in this unit; carbs and protein are always in grams.")
+                        .font(.caption)
+                }
+                
+                Section {
+                    SecureField("API key (optional)", text: $settings.usdaAPIKey)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                } header: {
+                    Text("USDA Online Search")
+                } footer: {
+                    Text("Without a key the shared DEMO_KEY is used, which allows only a few searches per hour. Get a free key at fdc.nal.usda.gov.")
                         .font(.caption)
                 }
                 
@@ -44,7 +54,7 @@ struct SettingsView: View {
                     HStack {
                         Text("Version")
                         Spacer()
-                        Text("1.0")
+                        Text(appVersion)
                             .foregroundColor(.secondary)
                     }
                     
@@ -60,14 +70,14 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
         }
+        .navigationViewStyle(.stack)
+    }
+    
+    private var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "\(version) (\(build))"
     }
 }

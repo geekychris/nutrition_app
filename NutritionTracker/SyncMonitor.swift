@@ -15,6 +15,8 @@ class SyncMonitor: ObservableObject {
     private let syncCheckInterval: TimeInterval = 10
     
     func startMonitoring(modelContainer: ModelContainer) {
+        // onAppear can fire more than once; don't register duplicate observers
+        guard self.modelContainer == nil else { return }
         self.modelContainer = modelContainer
         
         // Listen for various CloudKit notifications
@@ -52,6 +54,7 @@ class SyncMonitor: ObservableObject {
         timer?.invalidate()
         timer = nil
         NotificationCenter.default.removeObserver(self)
+        modelContainer = nil
         print("🔄 SyncMonitor: Stopped monitoring")
     }
     
